@@ -18,7 +18,7 @@ type Closeio struct {
 type Contact struct {
 	Name   string  `json:"name"`
 	Title  string  `json:"title"`
-	Emails *[]Email `json:"emails"`
+	Emails []Email `json:"emails"`
 	Phones *[]Phone `json:"phones"`
 }
 type ContactResp struct {
@@ -87,7 +87,9 @@ func request(urlPart string,  reqType string, key string, data []byte) (resp *ht
 		if err != nil {
 			return nil, err
 		}
+		defer resp.Body.Close()
 		return nil, errors.New(string(bod))
 	}
+	
 	return resp, nil
 }
