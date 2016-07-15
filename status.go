@@ -13,7 +13,7 @@ type Status struct {
 	Label string `json:"label"`
 }
 func (c *Closeio) Statuses() (*Statuses, error) {
-	resp, err := request("status/lead/", "GET", c.Token, nil)
+	resp, err := request("status/lead/", "GET", c.Token, nil, 0)
 	if err != nil {
 		return nil, err
 	}

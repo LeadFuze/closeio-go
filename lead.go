@@ -78,7 +78,7 @@ func (c *Closeio) Leads(ls *LeadSearch) (l *Leads, err error) {
 		query := v.Encode()
 		leadType = "lead/?" + query
 	}
-	resp, err := request(leadType, "GET", c.Token, nil)
+	resp, err := request(leadType, "GET", c.Token, nil, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +98,12 @@ func (c *Closeio) CreateLead(lead *Lead) (l *LeadResp, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := request("lead/", "POST", c.Token, data)
+	resp, err := request("lead/", "POST", c.Token, data, 0)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	leadresp := LeadResp{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&leadresp)
@@ -116,10 +118,12 @@ func (c *Closeio) UpdateLead(id string, lead *Lead) (l *LeadResp, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := request("lead/"+id+"/", "PUT", c.Token, data)
+	resp, err := request("lead/"+id+"/", "PUT", c.Token, data, 0)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	leadresp := LeadResp{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&leadresp)
@@ -130,10 +134,12 @@ func (c *Closeio) UpdateLead(id string, lead *Lead) (l *LeadResp, err error) {
 }
 
 func (c *Closeio) GetLead(id string) (l *LeadResp, err error) {
-	resp, err := request("lead/"+id+"/", "GET", c.Token, nil)
+	resp, err := request("lead/"+id+"/", "GET", c.Token, nil, 0)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	lead := LeadResp{}
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&lead)
@@ -143,9 +149,10 @@ func (c *Closeio) GetLead(id string) (l *LeadResp, err error) {
 	return &lead, nil
 }
 func (c *Closeio) DeleteLead(id string) error {
-	_, err := request("lead/"+id+"/", "DELETE", c.Token, nil)
+	resp, err := request("lead/"+id+"/", "DELETE", c.Token, nil, 0)
 	if err != nil {
 		return err
 	}
+	resp.Body.Close()
 	return nil
 }

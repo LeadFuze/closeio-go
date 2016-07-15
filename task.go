@@ -15,7 +15,7 @@ func (c *Closeio) CreateTask(task *Task) (error) {
 	if err != nil {
 		return err
 	}
-	_, err = request("task/", "POST", c.Token, data)
+	_, err = request("task/", "POST", c.Token, data, 0)
 	if err != nil {
 		return err
 	}

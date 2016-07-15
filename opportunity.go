@@ -39,7 +39,7 @@ func (c *Closeio) CreateOpportunity(opportunity *Opportunity) (l *OpportunityRes
 	if err != nil {
 		return nil, err
 	}
-	resp, err := request("opportunity/", "POST", c.Token, data)
+	resp, err := request("opportunity/", "POST", c.Token, data, 0)
 	if err != nil {
 		return nil, err
 	}

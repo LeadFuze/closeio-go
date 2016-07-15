@@ -1,10 +1,11 @@
 package closeio
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -16,9 +17,9 @@ type Closeio struct {
 }
 
 type Contact struct {
-	Name   string  `json:"name"`
-	Title  string  `json:"title"`
-	Emails []Email `json:"emails"`
+	Name   string   `json:"name"`
+	Title  string   `json:"title"`
+	Emails []Email  `json:"emails"`
 	Phones *[]Phone `json:"phones"`
 }
 type ContactResp struct {
@@ -57,7 +58,7 @@ type Address struct {
 	Address2 string `json:"address_2"`
 	City     string `json:"city"`
 	State    string `json:"state"`
-	Zipcode  string    `json:"zipcode"`
+	Zipcode  string `json:"zipcode"`
 	Country  string `json:"country"`
 }
 
@@ -71,18 +72,35 @@ func marshal(data interface{}) (jsonD []byte, err error) {
 	}
 	return jsonData, nil
 }
-func request(urlPart string,  reqType string, key string, data []byte) (resp *http.Response, err error) {
+func request(urlPart string, reqType string, key string, data []byte, retry int) (resp *http.Response, err error) {
+	if retry > 3 {
+		return nil, errors.New("reached 5 retry")
+	}
+
+	// Create New http Transport
+	/*transConfig := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // disable verify
+	}
+
+	client := &http.Client{
+		Transport: transConfig,
+	}*/
 	client := &http.Client{}
-	url := baseURL + "/"+version + "/"+ urlPart
+	url := baseURL + "/" + version + "/" + urlPart
 	body := bytes.NewBuffer(data)
 	req, err := http.NewRequest(reqType, url, body)
 	req.SetBasicAuth(key, "")
 
+	log.Println("requesting", url)
+
 	resp, err = client.Do(req)
 	if err != nil {
-		return nil, err
+		log.Println("err, resuming", err)
+		retry++
+		return request(urlPart, reqType, key, data, retry)
 	}
 	if resp.StatusCode >= 400 {
+		log.Println("status >= 400", resp.StatusCode)
 		bod, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
@@ -90,6 +108,6 @@ func request(urlPart string,  reqType string, key string, data []byte) (resp *ht
 		defer resp.Body.Close()
 		return nil, errors.New(string(bod))
 	}
-	
+	log.Println("returning")
 	return resp, nil
 }
